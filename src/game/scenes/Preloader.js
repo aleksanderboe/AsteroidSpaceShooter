@@ -12,6 +12,7 @@ export class Preloader extends Scene {
 
     // Load player ship
     this.load.image("playerShip1_red", "playerShip1_red.png");
+    this.load.image("laserRed16", "laserRed16.png");
   }
 
   create() {

@@ -8,6 +8,12 @@ export class Game extends Scene {
   create() {
     this.cameras.main.setBackgroundColor(0x000000);
 
+    // Create lasers group
+    this.lasers = this.physics.add.group({
+      classType: Phaser.Physics.Arcade.Image,
+      maxSize: 10,
+    });
+
     this.player = this.physics.add.sprite(400, 300, "playerShip1_red");
     this.player.setOrigin(0.5);
 
@@ -24,6 +30,34 @@ export class Game extends Scene {
     this.rotationSpeed = 200;
 
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.spaceKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
+    );
+  }
+
+  shootLaser() {
+    const laser = this.lasers.get();
+    if (laser) {
+      const rotation = this.player.rotation - Math.PI / 2;
+      const x = this.player.x + Math.cos(rotation) * 40;
+      const y = this.player.y + Math.sin(rotation) * 40;
+
+      laser.setTexture("laserRed16");
+      laser.setPosition(x, y);
+      laser.setRotation(rotation + Math.PI / 2); // Add 90 degrees to align laser correctly
+      laser.setActive(true);
+      laser.setVisible(true);
+
+      const velocityX = Math.cos(rotation) * 400;
+      const velocityY = Math.sin(rotation) * 400;
+      laser.setVelocity(velocityX, velocityY);
+
+      // Remove laser after 1 second
+      this.time.delayedCall(1000, () => {
+        laser.setActive(false);
+        laser.setVisible(false);
+      });
+    }
   }
 
   update() {
@@ -50,6 +84,11 @@ export class Game extends Scene {
 
     if (!this.cursors.up.isDown) {
       this.player.setDrag(0.95);
+    }
+
+    // Shooting
+    if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+      this.shootLaser();
     }
   }
 }
