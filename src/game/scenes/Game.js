@@ -20,7 +20,7 @@ export class Game extends Scene {
     this.player.setRotation(-Math.PI / 2); // -90 degrees in radians
 
     this.player.setDamping(true);
-    this.player.setDrag(0.95);
+    this.player.setDrag(0.4);
     this.player.setMaxVelocity(300);
     this.player.setAngularDrag(400);
     this.player.setBounce(0.2);
@@ -88,7 +88,7 @@ export class Game extends Scene {
     }
 
     if (!this.cursors.up.isDown) {
-      this.player.setDrag(0.95);
+      this.player.setDrag(0.4);
     }
 
     // Shooting
