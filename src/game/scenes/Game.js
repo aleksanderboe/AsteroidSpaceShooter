@@ -33,18 +33,22 @@ export class Game extends Scene {
     this.spaceKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.SPACE
     );
+
+    this.laserSound = this.sound.add("laser");
   }
 
   shootLaser() {
     const laser = this.lasers.get();
     if (laser) {
+      this.laserSound.play();
+
       const rotation = this.player.rotation - Math.PI / 2;
       const x = this.player.x + Math.cos(rotation) * 40;
       const y = this.player.y + Math.sin(rotation) * 40;
 
       laser.setTexture("laserRed16");
       laser.setPosition(x, y);
-      laser.setRotation(rotation + Math.PI / 2); // Add 90 degrees to align laser correctly
+      laser.setRotation(rotation + Math.PI / 2); // align laser correctly
       laser.setActive(true);
       laser.setVisible(true);
 
@@ -52,8 +56,9 @@ export class Game extends Scene {
       const velocityY = Math.sin(rotation) * 400;
       laser.setVelocity(velocityX, velocityY);
 
-      // Remove laser after 1 second
-      this.time.delayedCall(1000, () => {
+      const laserExpireMs = 1000;
+
+      this.time.delayedCall(laserExpireMs, () => {
         laser.setActive(false);
         laser.setVisible(false);
       });

@@ -10,9 +10,10 @@ export class Preloader extends Scene {
   preload() {
     this.load.setPath("assets");
 
-    // Load player ship
     this.load.image("playerShip1_red", "playerShip1_red.png");
     this.load.image("laserRed16", "laserRed16.png");
+
+    this.load.audio("laser", "sfx_laser1.ogg");
   }
 
   create() {
