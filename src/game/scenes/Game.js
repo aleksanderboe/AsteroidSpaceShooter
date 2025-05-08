@@ -54,6 +54,7 @@ export class Game extends Scene {
       meteor.setVelocity(velocityX, velocityY);
     }
   }
+
   destroyAllMeteors() {
     this.meteors.getChildren().forEach((meteor) => {
       if (meteor.active) {
@@ -124,9 +125,20 @@ export class Game extends Scene {
     }
   }
 
+  updateScore() {
+    this.score += 10;
+    this.scoreText.setText(`Score: ${this.score}`);
+  }
+
+  resetScore() {
+    this.score = 0;
+    this.scoreText.setText(`Score: ${this.score}`);
+  }
+
   create() {
     this.cameras.main.setBackgroundColor(0x000000);
 
+    this.createScore();
     this.createPlayer();
     this.createLaser();
     this.createMeteor();
@@ -146,6 +158,21 @@ export class Game extends Scene {
       callbackScope: this,
       loop: true,
     });
+  }
+
+  createScore() {
+    this.score = 0;
+
+    const x = this.cameras.main.width / 2;
+
+    this.scoreText = this.add
+      .text(x, 50, `Score: ${this.score}`, {
+        fontFamily: "Arial",
+        fontSize: "32px",
+        color: "#ffffff",
+        align: "left",
+      })
+      .setOrigin(0.5, 0.5);
   }
 
   createPlayer() {
@@ -192,8 +219,9 @@ export class Game extends Scene {
       this.player.setAcceleration(0, 0);
       this.player.setAngularVelocity(0);
       this.player.setRotation(-Math.PI / 2);
-
       this.destroyAllMeteors();
+
+      this.resetScore();
     });
 
     // Laser <-> Meteor
@@ -205,6 +233,7 @@ export class Game extends Scene {
         laser.setActive(false);
         laser.setVisible(false);
         this.meteorHitSound.play();
+        this.updateScore();
       }
     });
   }
