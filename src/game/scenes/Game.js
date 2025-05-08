@@ -24,21 +24,6 @@ export class Game extends Scene {
 
     this.meteorHitSound = this.sound.add("zap");
 
-    const meteor = this.meteors.get();
-    if (meteor) {
-      meteor.setTexture("meteor");
-      meteor.setPosition(200, 200);
-      meteor.setActive(true);
-      meteor.setVisible(true);
-
-      const texture = this.textures.get("meteor");
-      const width = texture.getSourceImage().width;
-      const height = texture.getSourceImage().height;
-      meteor.body.setSize(width, height);
-
-      meteor.isDestroyed = false;
-    }
-
     this.physics.add.collider(this.meteors, this.lasers, (meteor, laser) => {
       if (!meteor.isDestroyed) {
         meteor.isDestroyed = true;
@@ -71,6 +56,64 @@ export class Game extends Scene {
     this.spaceKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.SPACE
     );
+
+    const meteorSpawnCooldownMS = 2000;
+    this.time.addEvent({
+      delay: meteorSpawnCooldownMS,
+      callback: this.spawnMeteor,
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  spawnMeteor() {
+    const meteor = this.meteors.get();
+    if (meteor) {
+      meteor.setTexture("meteor");
+      const texture = this.textures.get("meteor");
+      const width = texture.getSourceImage().width;
+      const height = texture.getSourceImage().height;
+      meteor.body.setSize(width, height);
+
+      meteor.isDestroyed = false;
+      meteor.setActive(true);
+      meteor.setVisible(true);
+      meteor.setBounce(1);
+      meteor.setMass(1);
+
+      const gameWidth = this.cameras.main.width;
+      const gameHeight = this.cameras.main.height;
+      const side = Phaser.Math.Between(0, 3);
+      let x, y;
+
+      if (side === 0) {
+        // Top
+        x = Phaser.Math.Between(0, gameWidth);
+        y = 0;
+      } else if (side === 1) {
+        // Right
+        x = gameWidth;
+        y = Phaser.Math.Between(0, gameHeight);
+      } else if (side === 2) {
+        // Bottom
+        x = Phaser.Math.Between(0, gameWidth);
+        y = gameHeight;
+      } else {
+        // Left
+        x = 0;
+        y = Phaser.Math.Between(0, gameHeight);
+      }
+
+      meteor.setPosition(x, y);
+
+      const centerX = gameWidth / 2;
+      const centerY = gameHeight / 2;
+      const angleToCenter = Phaser.Math.Angle.Between(x, y, centerX, centerY);
+      const speed = Phaser.Math.Between(100, 300);
+      const velocityX = Math.cos(angleToCenter) * speed;
+      const velocityY = Math.sin(angleToCenter) * speed;
+      meteor.setVelocity(velocityX, velocityY);
+    }
   }
 
   shootLaser() {
