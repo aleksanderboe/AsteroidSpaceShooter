@@ -8,16 +8,53 @@ export class Game extends Scene {
   create() {
     this.cameras.main.setBackgroundColor(0x000000);
 
-    // Create lasers group
+    // Laser
     this.lasers = this.physics.add.group({
       classType: Phaser.Physics.Arcade.Image,
       maxSize: 10,
     });
 
+    this.laserSound = this.sound.add("laser");
+
+    // Meteor
+    this.meteors = this.physics.add.group({
+      classType: Phaser.Physics.Arcade.Image,
+      maxSize: 10,
+    });
+
+    this.meteorHitSound = this.sound.add("zap");
+
+    const meteor = this.meteors.get();
+    if (meteor) {
+      meteor.setTexture("meteor");
+      meteor.setPosition(200, 200);
+      meteor.setActive(true);
+      meteor.setVisible(true);
+
+      const texture = this.textures.get("meteor");
+      const width = texture.getSourceImage().width;
+      const height = texture.getSourceImage().height;
+      meteor.body.setSize(width, height);
+
+      meteor.isDestroyed = false;
+    }
+
+    this.physics.add.collider(this.meteors, this.lasers, (meteor, laser) => {
+      if (!meteor.isDestroyed) {
+        meteor.isDestroyed = true;
+        meteor.setActive(false);
+        meteor.setVisible(false);
+        laser.setActive(false);
+        laser.setVisible(false);
+        this.meteorHitSound.play();
+      }
+    });
+
+    // Player
     this.player = this.physics.add.sprite(400, 300, "playerShip1_red");
     this.player.setOrigin(0.5);
 
-    this.player.setRotation(-Math.PI / 2); // -90 degrees in radians
+    this.player.setRotation(-Math.PI / 2);
 
     this.player.setDamping(true);
     this.player.setDrag(0.4);
@@ -29,12 +66,11 @@ export class Game extends Scene {
     this.acceleration = 200;
     this.rotationSpeed = 200;
 
+    // Input
     this.cursors = this.input.keyboard.createCursorKeys();
     this.spaceKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.SPACE
     );
-
-    this.laserSound = this.sound.add("laser");
   }
 
   shootLaser() {
@@ -48,7 +84,7 @@ export class Game extends Scene {
 
       laser.setTexture("laserRed16");
       laser.setPosition(x, y);
-      laser.setRotation(rotation + Math.PI / 2); // align laser correctly
+      laser.setRotation(rotation + Math.PI / 2);
       laser.setActive(true);
       laser.setVisible(true);
 
