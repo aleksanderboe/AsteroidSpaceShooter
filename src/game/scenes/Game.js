@@ -5,67 +5,6 @@ export class Game extends Scene {
     super("Game");
   }
 
-  create() {
-    this.cameras.main.setBackgroundColor(0x000000);
-
-    // Laser
-    this.lasers = this.physics.add.group({
-      classType: Phaser.Physics.Arcade.Image,
-      maxSize: 10,
-    });
-
-    this.laserSound = this.sound.add("laser");
-
-    // Meteor
-    this.meteors = this.physics.add.group({
-      classType: Phaser.Physics.Arcade.Image,
-      maxSize: 10,
-    });
-
-    this.meteorHitSound = this.sound.add("zap");
-
-    this.physics.add.collider(this.meteors, this.lasers, (meteor, laser) => {
-      if (!meteor.isDestroyed) {
-        meteor.isDestroyed = true;
-        meteor.setActive(false);
-        meteor.setVisible(false);
-        laser.setActive(false);
-        laser.setVisible(false);
-        this.meteorHitSound.play();
-      }
-    });
-
-    // Player
-    this.player = this.physics.add.sprite(400, 300, "playerShip1_red");
-    this.player.setOrigin(0.5);
-
-    this.player.setRotation(-Math.PI / 2);
-
-    this.player.setDamping(true);
-    this.player.setDrag(0.4);
-    this.player.setMaxVelocity(300);
-    this.player.setAngularDrag(400);
-    this.player.setBounce(0.2);
-    this.player.setCollideWorldBounds(true);
-
-    this.acceleration = 200;
-    this.rotationSpeed = 200;
-
-    // Input
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.spaceKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.SPACE
-    );
-
-    const meteorSpawnCooldownMS = 2000;
-    this.time.addEvent({
-      delay: meteorSpawnCooldownMS,
-      callback: this.spawnMeteor,
-      callbackScope: this,
-      loop: true,
-    });
-  }
-
   spawnMeteor() {
     const meteor = this.meteors.get();
     if (meteor) {
@@ -114,6 +53,15 @@ export class Game extends Scene {
       const velocityY = Math.sin(angleToCenter) * speed;
       meteor.setVelocity(velocityX, velocityY);
     }
+  }
+  destroyAllMeteors() {
+    this.meteors.getChildren().forEach((meteor) => {
+      if (meteor.active) {
+        meteor.isDestroyed = true;
+        meteor.setActive(false);
+        meteor.setVisible(false);
+      }
+    });
   }
 
   shootLaser() {
@@ -174,5 +122,90 @@ export class Game extends Scene {
     if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
       this.shootLaser();
     }
+  }
+
+  create() {
+    this.cameras.main.setBackgroundColor(0x000000);
+
+    this.createPlayer();
+    this.createLaser();
+    this.createMeteor();
+
+    this.createColliders();
+
+    // Input
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.spaceKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
+    );
+
+    const meteorSpawnCooldownMS = 2000;
+    this.time.addEvent({
+      delay: meteorSpawnCooldownMS,
+      callback: this.spawnMeteor,
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  createPlayer() {
+    // Player
+    this.player = this.physics.add.sprite(400, 300, "playerShip1_red");
+    this.player.setOrigin(0.5);
+
+    this.player.setRotation(-Math.PI / 2);
+
+    this.player.setDamping(true);
+    this.player.setDrag(0.4);
+    this.player.setMaxVelocity(300);
+    this.player.setAngularDrag(400);
+    this.player.setBounce(0.2);
+    this.player.setCollideWorldBounds(true);
+
+    this.acceleration = 200;
+    this.rotationSpeed = 200;
+  }
+
+  createLaser() {
+    this.lasers = this.physics.add.group({
+      classType: Phaser.Physics.Arcade.Image,
+      maxSize: 10,
+    });
+
+    this.laserSound = this.sound.add("laser");
+  }
+
+  createMeteor() {
+    this.meteors = this.physics.add.group({
+      classType: Phaser.Physics.Arcade.Image,
+      maxSize: 10,
+    });
+
+    this.meteorHitSound = this.sound.add("zap");
+  }
+
+  createColliders() {
+    // Player <-> Meteor
+    this.physics.add.overlap(this.player, this.meteors, (player, meteor) => {
+      this.player.setPosition(400, 300);
+      this.player.setVelocity(0, 0);
+      this.player.setAcceleration(0, 0);
+      this.player.setAngularVelocity(0);
+      this.player.setRotation(-Math.PI / 2);
+
+      this.destroyAllMeteors();
+    });
+
+    // Laser <-> Meteor
+    this.physics.add.collider(this.meteors, this.lasers, (meteor, laser) => {
+      if (!meteor.isDestroyed) {
+        meteor.isDestroyed = true;
+        meteor.setActive(false);
+        meteor.setVisible(false);
+        laser.setActive(false);
+        laser.setVisible(false);
+        this.meteorHitSound.play();
+      }
+    });
   }
 }
